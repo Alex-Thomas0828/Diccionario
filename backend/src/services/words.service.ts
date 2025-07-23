@@ -15,8 +15,12 @@ import { Word, WordRow } from '../models/word';
  * @returns {Promise<Word[]>} Lista de palabras
  * @throws {Error} Si hay un error en la consulta
  */
-export const getAllWords = async (): Promise<Word[]> => {
-  const [rows] = await pool.query<WordRow[]>('SELECT * FROM words');
+export const getAllWords = async (page: number = 1, limit: number = 10): Promise<Word[]> => {
+  const offset = (page - 1) * limit;
+  const [rows] = await pool.query<WordRow[]>(
+    'SELECT * FROM words ORDER BY word LIMIT ? OFFSET ?',
+    [limit, offset]
+  );
   return rows;
 };
 
@@ -105,3 +109,14 @@ export const deleteWord = async (id: number): Promise<boolean> => {
   // affectedRows indica cuántas filas se eliminaron
   return result.affectedRows > 0;
 };
+
+/* SQL Schema: 
+CREATE TABLE words (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  word VARCHAR(255) UNIQUE NOT NULL,
+  definition TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT DEFAULT NULL
+);
+*/

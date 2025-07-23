@@ -9,7 +9,7 @@ export const getAllWords = async (req: Request, res: Response): Promise<void> =>
     const limit = parseInt(req.query.limit as string) || 10;
     
     // Llamar al servicio para obtener las palabras
-    const words = await wordService.getAllWords();
+    const words = await wordService.getAllWords(page, limit);
     
     // Devolver las palabras en formato JSON
     res.json(words);
