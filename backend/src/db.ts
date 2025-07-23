@@ -4,6 +4,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+
+
 const pool = createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -12,5 +14,15 @@ const pool = createPool({
   waitForConnections: true,
   connectionLimit: 10
 });
+
+pool.getConnection()
+  .then(conn => {
+    console.log('Successfully connected to MySQL database');
+    conn.release();
+  })
+  .catch(err => {
+    console.error('Database connection failed:', err);
+    process.exit(1);
+  });
 
 export default pool;
