@@ -63,12 +63,18 @@ export const DictionaryAPI = {
    *   definition: "definición"
    * });
    */
-  createWord: async (wordData: { word: string; definition: string }): Promise<Word> => {
-    const response = await fetch(`${API_BASE_URL}/words`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(wordData)
-    });
+  createWord: async (wordData: { 
+  word: string; 
+  definition: string;
+  semantica: string;
+  categoria_gramatical: string;
+  ejemplo: string;
+}): Promise<Word> => {
+  const response = await fetch(`${API_BASE_URL}/words`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(wordData)
+  });
     if (!response.ok) throw new Error('No se pudo crear Word');
     return await response.json();
   },

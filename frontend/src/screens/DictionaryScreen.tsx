@@ -127,14 +127,19 @@ export default function DictionaryScreen() {
         data={words}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <List.Item
-            title={item.word}
-            description={item.definition}
-            titleStyle={styles.wordTitle}
-            onPress={() => navigation.navigate('WordEditor', { word: item })}
-            right={props => <List.Icon {...props} icon="pencil" />}
-          />
-        )}
+  <List.Item
+    title={item.word}
+    description={`
+      ${item.categoria_gramatical} • ${item.semantica}
+      \nDefinición: ${item.definition}
+      ${item.ejemplo ? `\nEjemplo: "${item.ejemplo}"` : ''}
+    `}
+    titleStyle={styles.wordTitle}
+    onPress={() => navigation.navigate('WordEditor', { word: item })}
+    right={props => <List.Icon {...props} icon="pencil" />}
+    descriptionNumberOfLines={10} // Increase to show more lines
+  />
+)}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

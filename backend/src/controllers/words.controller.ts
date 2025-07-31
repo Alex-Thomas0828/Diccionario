@@ -19,6 +19,7 @@ export const getAllWords = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+//typescript
 // Controlador para buscar palabras por término
 export const searchWords = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -68,17 +69,20 @@ export const getWord = async (req: Request, res: Response): Promise<void> => {
 // Controlador para crear una nueva palabra
 export const createWord = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Obtener palabra y definición del cuerpo de la petición
-    const { word, definition } = req.body;
+    const { word, definition, semantica, categoria_gramatical, ejemplo } = req.body;
     
-    // Validar que ambos campos estén presentes
-    if (!word || !definition) {
-      res.status(400).json({ error: 'Word and definition required' });
+    if (!word || !definition || !semantica || !categoria_gramatical) {
+      res.status(400).json({ error: 'Todos los campos obligatorios son requeridos' });
       return;
     }
     
-    // Llamar al servicio para crear la palabra
-    const newWord = await wordService.createWord({ word, definition });
+    const newWord = await wordService.createWord({ 
+      word, 
+      definition,
+      semantica,
+      categoria_gramatical,
+      ejemplo: ejemplo || '' 
+    });
     
     // Devolver la nueva palabra con código 201 (Created)
     res.status(201).json(newWord);
