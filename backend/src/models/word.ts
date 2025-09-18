@@ -17,6 +17,11 @@ export interface Word {
   /** El significado o definición de la palabra */
   definition: string;
   
+  semantica: string;          // New field
+  categoria_gramatical: string; // New field
+  ejemplo: string;            // New field
+
+
   /** Fecha de creación en la base de datos */
   created_at: Date;
   
