@@ -12,6 +12,8 @@ import { Word, WordRow } from '../models/word';
 
 /**
  * Obtiene todas las palabras del diccionario
+ * @param {number} page - Número de página para paginación
+ * @param {number} limit - Límite de resultados por página
  * @returns {Promise<Word[]>} Lista de palabras
  * @throws {Error} Si hay un error en la consulta
  */
@@ -32,8 +34,11 @@ export const getAllWords = async (page: number = 1, limit: number = 10): Promise
  */
 export const searchWords = async (term: string): Promise<Word[]> => {
   const [rows] = await pool.query<WordRow[]>(
-    'SELECT * FROM words WHERE word LIKE ?',
-    [`%${term}%`]  // El % permite búsqueda parcial
+    `SELECT * FROM words 
+     WHERE word LIKE ? 
+     OR definition LIKE ?
+     OR ejemplo LIKE ?`,
+    [`%${term}%`, `%${term}%`, `%${term}%`]
   );
   return rows;
 };
@@ -49,7 +54,7 @@ export const getWordById = async (id: number): Promise<Word | null> => {
     'SELECT * FROM words WHERE id = ?', 
     [id]
   );
-  return rows[0] || null;  // Devuelve null si no encuentra la palabra
+  return rows[0] || null;
 };
 
 /**
@@ -57,23 +62,38 @@ export const getWordById = async (id: number): Promise<Word | null> => {
  * @param {Object} wordData - Datos de la palabra
  * @param {string} wordData.word - La palabra a crear
  * @param {string} wordData.definition - Definición de la palabra
+ * @param {string} wordData.semantica - Semántica de la palabra
+ * @param {string} wordData.categoria_gramatical - Categoría gramatical
+ * @param {string} wordData.ejemplo - Ejemplo de uso
  * @returns {Promise<Word>} La palabra creada con su ID
  * @throws {Error} Si hay un error en la inserción
  */
-export const createWord = async (wordData: { word: string; definition: string }): Promise<Word> => {
-  // 1. Insertar la nueva palabra
+export const createWord = async (wordData: { 
+  word: string; 
+  definition: string;
+  semantica: string;
+  categoria_gramatical: string;
+  ejemplo: string;
+}): Promise<Word> => {
   const [result] = await pool.query<ResultSetHeader>(
-    'INSERT INTO words (word, definition) VALUES (?, ?)',
-    [wordData.word, wordData.definition]
+    `INSERT INTO words 
+     (word, definition, semantica, categoria_gramatical, ejemplo) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [
+      wordData.word, 
+      wordData.definition,
+      wordData.semantica,
+      wordData.categoria_gramatical,
+      wordData.ejemplo
+    ]
   );
   
-  // 2. Obtener la palabra recién creada (con timestamps automáticos)
   const [rows] = await pool.query<WordRow[]>(
     'SELECT * FROM words WHERE id = ?',
-    [result.insertId]  // ID generado por la base de datos
+    [result.insertId]
   );
   
-  return rows[0]; // Retorna la palabra con todos sus datos
+  return rows[0];
 };
 
 /**
@@ -91,7 +111,6 @@ export const updateWord = async (
     'UPDATE words SET ? WHERE id = ?',
     [wordData, id]
   );
-  // affectedRows indica cuántas filas se modificaron
   return result.affectedRows > 0;
 };
 
@@ -106,7 +125,6 @@ export const deleteWord = async (id: number): Promise<boolean> => {
     'DELETE FROM words WHERE id = ?',
     [id]
   );
-  // affectedRows indica cuántas filas se eliminaron
   return result.affectedRows > 0;
 };
 
@@ -115,6 +133,9 @@ CREATE TABLE words (
   id INT AUTO_INCREMENT PRIMARY KEY,
   word VARCHAR(255) UNIQUE NOT NULL,
   definition TEXT NOT NULL,
+  semantica VARCHAR(255) NOT NULL,
+  categoria_gramatical VARCHAR(50) NOT NULL,
+  ejemplo TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_by INT DEFAULT NULL

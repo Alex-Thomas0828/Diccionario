@@ -7,6 +7,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Word } from '../models/word';
 
+/**
+ * Pantalla principal del diccionario que muestra una lista de palabras
+ * y permite buscar, añadir y navegar a la edición de palabras.
+ */
 export default function DictionaryScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Dictionary'>>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +22,10 @@ export default function DictionaryScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Memoized loadWords function
+  /**
+   * Función para cargar palabras, con memoización para optimización
+   * @param {boolean} reset - Indica si debe reiniciar la paginación
+   */
   const loadWords = useCallback(async (reset = false) => {
     try {
       setError(null);
@@ -26,9 +33,11 @@ export default function DictionaryScreen() {
       
       let data: Word[];
       if (searchQuery.trim()) {
+        // Modo búsqueda: carga resultados de búsqueda sin paginación
         data = await DictionaryAPI.searchWords(searchQuery);
-        setHasMore(false); // Disable pagination during search
+        setHasMore(false);
       } else {
+        // Modo normal: carga palabras paginadas
         data = await DictionaryAPI.getAllWords(currentPage);
         setHasMore(data.length > 0);
       }
@@ -44,31 +53,37 @@ export default function DictionaryScreen() {
     }
   }, [page, searchQuery]);
 
-  // Initial load and reset on search query change
+  /**
+   * Efecto para carga inicial y búsquedas con debounce
+   */
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
       loadWords(true);
-      setPage(1); // Reset to first page on search
-    }, 500); // Debounce search by 500ms
+      setPage(1); // Reinicia a la primera página en cada búsqueda
+    }, 500); // Debounce de 500ms para búsquedas
 
     return () => clearTimeout(timer);
   }, [searchQuery, loadWords]);
 
-  // Handle refresh
+  /**
+   * Maneja el evento de "pull to refresh"
+   */
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     loadWords(true);
   }, [loadWords]);
 
-  // Load more items
+  /**
+   * Maneja la carga de más elementos al hacer scroll
+   */
   const handleLoadMore = useCallback(() => {
     if (!loading && hasMore && !searchQuery.trim()) {
       setPage(prev => prev + 1);
     }
   }, [loading, hasMore, searchQuery]);
 
-  // Render loading indicator
+  // Estado de carga inicial
   if (loading && !refreshing && words.length === 0) {
     return (
       <View style={styles.centerContainer}>
@@ -77,7 +92,7 @@ export default function DictionaryScreen() {
     );
   }
 
-  // Render error state
+  // Estado de error
   if (error) {
     return (
       <View style={styles.centerContainer}>
@@ -98,6 +113,7 @@ export default function DictionaryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Barra de búsqueda */}
       <Searchbar
         placeholder="Buscar en el diccionario"
         value={searchQuery}
@@ -106,18 +122,24 @@ export default function DictionaryScreen() {
         loading={isSearching}
       />
       
+      {/* Lista de palabras */}
       <FlatList
         data={words}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <List.Item
-            title={item.word}
-            description={item.definition}
-            titleStyle={styles.wordTitle}
-            onPress={() => navigation.navigate('WordEditor', { word: item })}
-            right={props => <List.Icon {...props} icon="pencil" />}
-          />
-        )}
+  <List.Item
+    title={item.word}
+    description={`
+      ${item.categoria_gramatical} • ${item.semantica}
+      \nDefinición: ${item.definition}
+      ${item.ejemplo ? `\nEjemplo: "${item.ejemplo}"` : ''}
+    `}
+    titleStyle={styles.wordTitle}
+    onPress={() => navigation.navigate('WordEditor', { word: item })}
+    right={props => <List.Icon {...props} icon="pencil" />}
+    descriptionNumberOfLines={10} // Increase to show more lines
+  />
+)}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -148,6 +170,7 @@ export default function DictionaryScreen() {
         }
       />
 
+      {/* Botón flotante para añadir nuevas palabras */}
       <FAB
         icon="plus"
         style={styles.fab}
@@ -157,6 +180,9 @@ export default function DictionaryScreen() {
   );
 }
 
+/**
+ * Estilos para la pantalla del diccionario
+ */
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
