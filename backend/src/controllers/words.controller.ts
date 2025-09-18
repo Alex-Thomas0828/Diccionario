@@ -103,11 +103,17 @@ export const updateWord = async (req: Request, res: Response): Promise<void> => 
     // Obtener ID de la palabra a actualizar
     const id = parseInt(req.params.id);
     
-    // Obtener nuevos datos del cuerpo de la petición
-    const { word, definition } = req.body;
+    // Obtener todos los campos del cuerpo de la petición
+    const { word, definition, semantica, categoria_gramatical, ejemplo } = req.body;
     
-    // Llamar al servicio de actualización
-    const success = await wordService.updateWord(id, { word, definition });
+    // Llamar al servicio de actualización con todos los campos
+    const success = await wordService.updateWord(id, { 
+      word, 
+      definition,
+      semantica,
+      categoria_gramatical,
+      ejemplo
+    });
     
     // Si no se encontró la palabra, devolver error 404
     if (!success) {
@@ -115,10 +121,8 @@ export const updateWord = async (req: Request, res: Response): Promise<void> => 
       return;
     }
     
-    // Devolver confirmación de éxito
     res.json({ success: true });
   } catch (error) {
-    // Manejar errores de actualización
     res.status(500).json({ error: 'Failed to update word' });
   }
 };

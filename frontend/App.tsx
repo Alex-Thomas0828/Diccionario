@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
+import HomeScreen from './src/screens/HomeScreen';
 import DictionaryScreen from './src/screens/DictionaryScreen';
 import WordEditorScreen from './src/screens/WordEditorScreen';
 
@@ -10,15 +11,20 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen 
-  name="Dictionary" 
-  component={DictionaryScreen}
-  options={{ title: 'Diccionario' }}  // Changed
-/>
+          name="Home" 
+          component={HomeScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen 
-  name="WordEditor" 
-  component={WordEditorScreen}
-  options={{ title: 'Editor de Palabras' }}  // Changed
-/>
+          name="Dictionary" 
+          component={DictionaryScreen}
+          options={{ title: 'Diccionario' }}
+        />
+        <Stack.Screen 
+          name="WordEditor" 
+          component={WordEditorScreen}
+          options={{ title: 'Editar' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

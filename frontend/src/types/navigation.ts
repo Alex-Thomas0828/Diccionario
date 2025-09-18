@@ -45,7 +45,8 @@ declare global {
  * @property {Word} [word] - Palabra a editar (opcional)
  */
 export type RootStackParamList = {
-  Dictionary: { refresh?: boolean };
+  Home: undefined;
+  Dictionary: { searchTerm?: string };
   WordEditor: { word?: Word };
 };
 

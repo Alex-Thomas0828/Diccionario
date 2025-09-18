@@ -7,11 +7,19 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { Word } from '../models/word';
 
+type Props = NativeStackNavigationProp<RootStackParamList, 'Dictionary'> & {
+  route: {
+    params?: {
+      searchTerm?: string;
+    };
+  };
+};
+
 /**
  * Pantalla principal del diccionario que muestra una lista de palabras
  * y permite buscar, añadir y navegar a la edición de palabras.
  */
-export default function DictionaryScreen() {
+export default function DictionaryScreen({ route }: Props) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Dictionary'>>();
   const [searchQuery, setSearchQuery] = useState('');
   const [words, setWords] = useState<Word[]>([]);
@@ -52,6 +60,13 @@ export default function DictionaryScreen() {
       setRefreshing(false);
     }
   }, [page, searchQuery]);
+
+useEffect(() => {
+    if (route.params?.searchTerm) {
+      setSearchQuery(route.params.searchTerm);
+      setIsSearching(true);
+    }
+  }, [route.params?.searchTerm]);
 
   /**
    * Efecto para carga inicial y búsquedas con debounce
