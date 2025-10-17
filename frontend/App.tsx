@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import HomeScreen from './src/screens/HomeScreen';
 import DictionaryScreen from './src/screens/DictionaryScreen';
 import WordEditorScreen from './src/screens/WordEditorScreen';
+import ContribuirScreen from './src/screens/contribuir';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,11 @@ export default function App() {
           name="WordEditor" 
           component={WordEditorScreen}
           options={{ title: 'Editar' }}
+        />
+        <Stack.Screen 
+          name="Contribuir" 
+          component={ContribuirScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
