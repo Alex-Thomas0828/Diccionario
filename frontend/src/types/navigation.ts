@@ -44,11 +44,15 @@ declare global {
  * @property {Object} WordEditor - Editor de palabras
  * @property {Word} [word] - Palabra a editar (opcional)
  */
+
 export type RootStackParamList = {
   Home: undefined;
   Dictionary: { searchTerm?: string };
   WordEditor: { word?: Word };
+  Contribuir: undefined; 
 };
+
+
 
 /**
  * Props para la pantalla del diccionario

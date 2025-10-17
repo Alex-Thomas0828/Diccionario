@@ -4,6 +4,7 @@ import { Button, Text, Chip, useTheme, Searchbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
@@ -19,6 +20,7 @@ export default function HomeScreen() {
       setSearchQuery('');
     }
   };
+
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
@@ -60,6 +62,17 @@ export default function HomeScreen() {
           </Button>
         </View>
       </View>
+
+      <Button 
+  mode="outlined" 
+  onPress={() => navigation.navigate('Contribuir')}
+  style={styles.contributeButton}
+  icon="heart-plus"
+>
+  Contribuir Palabra
+</Button>
+
+   
 
       {/* Sección de Categorías */}
       <View style={styles.section}>
@@ -168,4 +181,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
+  contributeButton: {
+  marginTop: 8,
+  borderColor: Colors.primary,
+},
 });
