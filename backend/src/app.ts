@@ -5,18 +5,18 @@
  * @description Configura Express, middlewares, rutas y manejo de errores
  */
 
-import express from 'express';
+import express, { Application }  from 'express';
 import cors from 'cors';
-import pool from './db';
 import wordsRouter from './routes/words.routes';
 import { errorHandler } from './middleware/error.middleware';
 import * as dotenv from 'dotenv';
 import type { Request, Response } from 'express';
+import { supabase } from '../supabaseClient';
 
 // Cargar variables de entorno desde el archivo .env
 dotenv.config();
 
-const app = express();
+const app: Application  = express();
 const PORT = process.env.PORT || 3001;
 
 /**
@@ -35,6 +35,7 @@ const allowedOrigins = [
  * Opciones de configuración para CORS
  * @type {cors.CorsOptions}
  */
+
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     // Permite peticiones sin origen (apps móviles, solicitudes curl)
@@ -80,13 +81,29 @@ app.use(express.urlencoded({ extended: true }));
  * @route GET /health
  * @returns {Object} Estado del servidor y base de datos
  */
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: pool ? 'connected' : 'disconnected'
+app.get('/health', async (req: Request, res: Response) => {
+  try{
+    const {error} = await supabase
+    .from('dictionary')
+    .select('id')
+    .limit(1);
+
+    const dbStatus = error ? "not connected" : "connected";
+
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+    })
+    } catch (err) {
+      console.error("error health on check: ", err);
+      res.status(500).json({
+        status: 'not healthy',
+        timestamp: new Date().toISOString(),
+        database: 'disonnected',
+      })
+    }
   });
-});
 
 /**
  * Rutas principales de la API para palabras
@@ -125,23 +142,6 @@ app.use((req: Request, res: Response) => {
 app.use(errorHandler);
 
 // ======================
-// Conexión a base de datos
-// ======================
-
-/**
- * Verificación de conexión a la base de datos MySQL
- */
-pool.getConnection()
-  .then(connection => {
-    console.log('Conexión a la base de datos establecida');
-    connection.release();
-  })
-  .catch(err => {
-    console.error('Error al conectar a la base de datos:', err);
-    process.exit(1); // Termina el proceso si no puede conectar a la DB
-  });
-
-// ======================
 // Inicialización del servidor
 // ======================
 
@@ -160,34 +160,4 @@ const server = app.listen(PORT, () => {
   `);
 });
 
-// ======================
-// Manejo de apagado
-// ======================
-
-/**
- * Maneja señales de terminación para apagado limpio
- */
-process.on('SIGTERM', () => {
-  console.log('Recibida señal SIGTERM. Apagando limpiamente...');
-  server.close(() => {
-    console.log('Servidor cerrado');
-    pool.end().then(() => {
-      console.log('Conexión a base de datos cerrada');
-      process.exit(0);
-    });
-  });
-});
-
-/**
- * Maneja señales de interrupción (Ctrl+C)
- */
-process.on('SIGINT', () => {
-  console.log('Recibida señal SIGINT. Apagando limpiamente...');
-  server.close(() => {
-    console.log('Servidor cerrado');
-    pool.end().then(() => {
-      console.log('Conexión a base de datos cerrada');
-      process.exit(0);
-    });
-  });
-});
+export default app;
