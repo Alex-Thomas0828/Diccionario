@@ -3,14 +3,14 @@ export interface Word {
   id: number;
   
   /** La palabra en sí (única en el sistema) */
-  word: string;
+  palabra: string;
   
   /** El significado o definición de la palabra */
-  definition: string;
+  definicion: string;
   
 
   semantica: string;          // New field
-  categoria_gramatical: string; // New field
+  categoria_grammatica: string; // New field
   ejemplo: string;            // New field
 
   

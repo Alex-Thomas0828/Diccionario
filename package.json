@@ -1,0 +1,17 @@
+{
+  "name": "diccionario",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm --prefix backend start",
+    "client": "npm --prefix frontend start",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm --prefix backend run dev",
+    "dev:client": "npm --prefix frontend run web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "typescript": "~5.8.3"
+  }
+}

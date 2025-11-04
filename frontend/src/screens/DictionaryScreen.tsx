@@ -43,6 +43,7 @@ export default function DictionaryScreen({ route }: Props) {
       if (searchQuery.trim()) {
         // Modo búsqueda: carga resultados de búsqueda sin paginación
         data = await DictionaryAPI.searchWords(searchQuery);
+        console.log(data);
         setHasMore(false);
       } else {
         // Modo normal: carga palabras paginadas
@@ -143,10 +144,10 @@ useEffect(() => {
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
   <List.Item
-    title={item.word}
+    title={item.palabra}
     description={`
-      ${item.categoria_gramatical} • ${item.semantica}
-      \nDefinición: ${item.definition}
+      ${item.categoria_grammatica} • ${item.semantica}
+      \nDefinición: ${item.definicion}
       ${item.ejemplo ? `\nEjemplo: "${item.ejemplo}"` : ''}
     `}
     titleStyle={styles.wordTitle}
