@@ -5,6 +5,27 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { DictionaryAPI } from '../services/api';
+import { Picker } from '@react-native-picker/picker';
+
+// Add category options at the top of your component
+const CATEGORIAS_SEMANTICAS = [
+  { label: 'Selecciona una categoría', value: '' },
+  { label: 'Familia', value: 'familia' },
+  { label: 'Naturaleza', value: 'naturaleza' },
+  { label: 'Comida', value: 'comida' },
+  { label: 'Animales', value: 'animales' },
+  { label: 'Colores', value: 'colores' },
+  { label: 'Números', value: 'numeros' },
+];
+
+const CATEGORIAS_GRAMATICALES = [
+  { label: 'Selecciona una categoría', value: '' },
+  { label: 'Sustantivo', value: 'sustantivo' },
+  { label: 'Verbo', value: 'verbo' },
+  { label: 'Adjetivo', value: 'adjetivo' },
+  { label: 'Adverbio', value: 'adverbio' },
+  { label: 'Pronombre', value: 'pronombre' },
+];
 
 export default function ContribuirScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -26,14 +47,17 @@ export default function ContribuirScreen() {
       setLoading(true);
       
       const wordData = {
-        word: palabraAncestral.trim(),
-        definition: significadoEspanol.trim(),
+        palabra: palabraAncestral.trim(), //changed from 'word'
+        definicion: significadoEspanol.trim(), //changed from 'definition'
         ejemplo: ejemploUso.trim() || undefined,
         semantica: categoriaSemantica.trim() || undefined,
-        categoria_gramatical: categoriaGramatical.trim() || undefined
+        categoria_grammatica: categoriaGramatical.trim() || undefined
       };
 
-      await DictionaryAPI.createWord(wordData);
+      console.log('Submitting word data:', wordData);
+
+      const result = await DictionaryAPI.createWord(wordData);
+      console.log('Word created successfully:', result);
       
       Alert.alert(
         'Contribución Enviada',
@@ -53,7 +77,8 @@ export default function ContribuirScreen() {
         ]
       );
     } catch (err) {
-      Alert.alert('Error', 'No se pudo enviar la contribución. Por favor intenta de nuevo.');
+      console.log('Error submitting word:', err);
+      Alert.alert('Error', err.message || 'Ocurrió un error al enviar tu palabra. Por favor, intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -63,17 +88,34 @@ export default function ContribuirScreen() {
     navigation.navigate(screenName);
   };
 
-  const DropdownField = ({ label, value, onChangeText, placeholder }: any) => (
+    // Replace the DropdownField component with this:
+  const DropdownField = ({ 
+    label, 
+    value, 
+    onValueChange, 
+    options 
+  }: { 
+    label: string; 
+    value: string; 
+    onValueChange: (value: string) => void;
+    options: { label: string; value: string }[];
+  }) => (
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.dropdownContainer}>
-        <TextInput
-          style={styles.dropdownInput}
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-        />
-        <Text style={styles.dropdownArrow}>▼</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={value}
+          onValueChange={onValueChange}
+          style={styles.picker}
+        >
+          {options.map((option) => (
+            <Picker.Item 
+              key={option.value} 
+              label={option.label} 
+              value={option.value}
+            />
+          ))}
+        </Picker>
       </View>
     </View>
   );
@@ -176,17 +218,17 @@ export default function ContribuirScreen() {
                 <DropdownField
                   label="Categoría Semántica *"
                   value={categoriaSemantica}
-                  onChangeText={setCategoriaSemantica}
-                  placeholder="Selecciona una categoría"
+                  onValueChange={setCategoriaSemantica}
+                  options={CATEGORIAS_SEMANTICAS}
                 />
               </View>
               
               <View style={[styles.fieldContainer, styles.halfField]}>
                 <DropdownField
-                  label="Categoría Gramatical *"
+                  label="Categoría Gramatical*"
                   value={categoriaGramatical}
-                  onChangeText={setCategoriaGramatical}
-                  placeholder="Selecciona una categoría"
+                  onValueChange={setCategoriaGramatical}
+                  options={CATEGORIAS_GRAMATICALES}
                 />
               </View>
             </View>
@@ -383,25 +425,18 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
   },
-  dropdownContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 6,
-    backgroundColor: '#f9fafb',
+
+  pickerContainer: {
+  borderWidth: 1,
+  borderColor: '#d1d5db',
+  borderRadius: 6,
+  backgroundColor: '#f9fafb',
+  overflow: 'hidden',
   },
-  dropdownInput: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+  picker: {
+    height: 50,
   },
-  dropdownArrow: {
-    paddingHorizontal: 12,
-    color: '#6b7280',
-    fontSize: 12,
-  },
+
   submitButton: {
     backgroundColor: '#1f2937',
     flexDirection: 'row',

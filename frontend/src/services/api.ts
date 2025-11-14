@@ -4,7 +4,7 @@
  * @description Contiene métodos para todas las operaciones CRUD de palabras
  */
 
-import { Word } from 'frontend/src/models/word.ts'; 
+import { Word } from '../models/word'; 
 
 /**
  * URL base de la API
@@ -42,9 +42,8 @@ export const DictionaryAPI = {
    * @param {number} [page=1] - Número de página
    * @param {number} [limit=10] - Cantidad de resultados por página
    * @returns {Promise<Word[]>} Lista de palabras
-   * @example
-   * const words = await DictionaryAPI.getAllWords(1, 20);
    */
+
   getAllWords: async (page = 1, limit = 10): Promise<Word[]> => {
     const response = await fetch(`${API_BASE_URL}/words?page=${page}&limit=${limit}`);
     return handleResponse(response);
@@ -61,8 +60,7 @@ export const DictionaryAPI = {
    */
   searchWords: async (term: string): Promise<Word[]> => {
     const response = await fetch(`${API_BASE_URL}/words/search?q=${encodeURIComponent(term)}`);
-    if (!response.ok) throw new Error('Search failed');
-    return await response.json();
+    return handleResponse(response);
   },
 
   /**
@@ -70,23 +68,27 @@ export const DictionaryAPI = {
    * @async
    * @function
    * @param {Object} wordData - Datos de la palabra
-   * @param {string} wordData.word - Palabra a crear
-   * @param {string} wordData.definition - Definición de la palabra
+   * @param {string} wordData.palabra - Palabra en lengua ancestral
+   * @param {string} wordData.definicion - Definición de la palabra
+   * @param {string} [wordData.ejemplo] - Ejemplo de uso
+   * @param {string} [wordData.semantica] - Categoría semántica
+   * @param {string} [wordData.categoria_gramatical] - Categoría gramatical
    * @returns {Promise<Word>} Palabra creada con ID
-   * @example
-   * const newWord = await DictionaryAPI.createWord({
-   *   word: "nuevo",
-   *   definition: "definición"
-   * });
    */
-  createWord: async (wordData: { word: string; definition: string }): Promise<Word> => {
+  
+  createWord: async (wordData: {
+    palabra: string;
+    definicion: string;
+    ejemplo?: string;
+    semantica?: string;
+    categoria_grammatica?: string;
+  }): Promise<Word> => {
     const response = await fetch(`${API_BASE_URL}/words`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(wordData)
     });
-    if (!response.ok) throw new Error('Failed to create word');
-    return await response.json();
+    return handleResponse(response);
   },
 
   /**
@@ -96,19 +98,15 @@ export const DictionaryAPI = {
    * @param {number} id - ID de la palabra a actualizar
    * @param {Partial<Word>} wordData - Campos a actualizar
    * @returns {Promise<boolean>} True si la actualización fue exitosa
-   * @example
-   * const success = await DictionaryAPI.updateWord(1, {
-   *   definition: "nueva definición"
-   * });
    */
+  
   updateWord: async (id: number, wordData: Partial<Word>): Promise<boolean> => {
     const response = await fetch(`${API_BASE_URL}/words/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(wordData)
     });
-    if (!response.ok) throw new Error('Failed to update word');
-    return true;
+    return handleResponse(response).then(() => true);
   },
 
   /**
@@ -129,7 +127,6 @@ export const DictionaryAPI = {
       },
     });
     console.log('DELETE Response Status:', response.status); 
-    if (!response.ok) throw new Error('Error al eliminar');
-    return true;
+    return handleResponse(response).then(() => true);
   }
 };
