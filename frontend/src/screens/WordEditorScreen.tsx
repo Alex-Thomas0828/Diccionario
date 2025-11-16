@@ -35,10 +35,10 @@ export default function WordEditorScreen({ route, navigation }: Props) {
   // Initialize form
   useEffect(() => {
     if (route.params?.word) {
-      setWord(route.params.word.word);
-      setDefinition(route.params.word.definition);
+      setWord(route.params.word.palabra);
+      setDefinition(route.params.word.definicion);
       setSemantica(route.params.word.semantica || '');
-      setCategoriaGramatical(route.params.word.categoria_gramatical || '');
+      setCategoriaGramatical(route.params.word.categoria_grammatica || '');
       setEjemplo(route.params.word.ejemplo || '');
       setIsEditing(true);
       navigation.setOptions({ title: 'Editar Palabra' });
@@ -72,10 +72,10 @@ export default function WordEditorScreen({ route, navigation }: Props) {
       setError(null);
 
       const wordData = {
-        word,
-        definition,
+        palabra: word, // changed from 'word'
+        definicion: definition, // changed from 'definition'
         semantica,
-        categoria_gramatical: categoriaGramatical,
+        categoria_grammatica: categoriaGramatical,
         ejemplo
       };
 
@@ -107,7 +107,7 @@ export default function WordEditorScreen({ route, navigation }: Props) {
         Alert.alert(
           'Éxito',
           'Palabra eliminada',
-          [{ text: 'OK', onPress: () => navigation.navigate('Dictionary', { refresh: true }) }]
+          [{ text: 'OK', onPress: () => navigation.navigate('Dictionary', {refresh: true }) }]
         );
       }
       navigation.goBack();

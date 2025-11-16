@@ -113,9 +113,9 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * @returns {Word} La palabra creada
  */
 router.post('/', async (req: Request, res: Response):Promise<void> => {
-   const {word, definition, semantica, categoria_gramatical, ejemplo} = req.body;
+   const {palabra, definicion, semantica, categoria_grammatica, ejemplo} = req.body;
    // 🧩 Validación de campos obligatorios
-   if (!word || !definition || !semantica || !categoria_gramatical) {
+   if (!palabra || !definicion || !semantica || !categoria_grammatica) {
       res.status(400).json({ error: 'Todos los campos obligatorios son requeridos' });
       return;
    }
@@ -123,13 +123,13 @@ router.post('/', async (req: Request, res: Response):Promise<void> => {
    try{
       const {data, error} = await supabase
       .from('dictionary')
-      .insert([
-         word, 
-         definition,
+      .insert([{
+         palabra,
+         definicion,
          semantica,
-         categoria_gramatical,
-         ejemplo || '',
-      ])
+         categoria_grammatica,
+         ejemplo
+      }])
       .select()
       .single();
 
@@ -152,7 +152,7 @@ router.post('/', async (req: Request, res: Response):Promise<void> => {
  */
 router.put('/:id', async (req: Request, res: Response) => {
    const id = parseInt(req.params.id);
-   const { word, definition, semantica, categoria_gramatical, ejemplo } = req.body;
+   const { word, definition, semantica, categoria_grammatica, ejemplo } = req.body;
 
    try{
       const {data, error} = await supabase
@@ -161,7 +161,7 @@ router.put('/:id', async (req: Request, res: Response) => {
          word, 
          definition,
          semantica, 
-         categoria_gramatical,
+         categoria_grammatica,
          ejemplo
       })
       .eq('id',id)
