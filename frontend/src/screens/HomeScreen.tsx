@@ -28,6 +28,10 @@ export default function HomeScreen() {
     }
   };
 
+  const handleNavigation = (screenName: keyof RootStackParamList) => {
+    navigation.navigate(screenName);
+  };
+
   const CategoryCard = ({ title, subtitle, items, icon }: any) => (
     <View style={styles.categoryCard}>
       <View style={styles.categoryHeader}>
@@ -59,15 +63,27 @@ export default function HomeScreen() {
           <Text style={styles.headerTitle}>Lengua Ancestral</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity 
+            style={[styles.headerButton, styles.activeButton]} 
+            onPress={() => handleNavigation('Home')}
+          >
             <Text style={styles.headerButtonText}>🏠 Inicio</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
+          
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => handleNavigation('Contribuir')}
+          >
             <Text style={styles.headerButtonText}>👤 Contribuir</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
+          
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => handleNavigation('Dictionary')}
+          >
             <Text style={styles.headerButtonText}>⚙️ Administración</Text>
           </TouchableOpacity>
+          
           <Text style={styles.adminText}>admin Administrador</Text>
         </View>
       </View>

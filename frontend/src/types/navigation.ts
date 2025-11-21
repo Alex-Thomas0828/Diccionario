@@ -48,6 +48,7 @@ export type RootStackParamList = {
   Home: undefined;
   Dictionary: { searchTerm?: string };
   WordEditor: { word?: Word };
+  Contribuir: undefined; // Add this line
 };
 
 /**
