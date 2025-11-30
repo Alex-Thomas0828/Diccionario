@@ -79,10 +79,11 @@ export default function HomeScreen() {
           
           <TouchableOpacity 
             style={styles.headerButton}
-            onPress={() => handleNavigation('Dictionary')}
+            onPress={() => handleNavigation('Administracion')}
           >
             <Text style={styles.headerButtonText}>⚙️ Administración</Text>
           </TouchableOpacity>
+
           
           <Text style={styles.adminText}>admin Administrador</Text>
         </View>

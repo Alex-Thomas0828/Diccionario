@@ -4,6 +4,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import DictionaryScreen from './src/screens/DictionaryScreen';
 import WordEditorScreen from './src/screens/WordEditorScreen';
 import ContribuirScreen from './src/screens/contribuir';
+import AdministracionScreen from './src/screens/AdministracionScreen'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,11 @@ export default function App() {
           name="Contribuir" 
           component={ContribuirScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Administracion" 
+          component={AdministracionScreen}
+          options={{ title: 'Administración' }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

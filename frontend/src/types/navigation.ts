@@ -49,6 +49,7 @@ export type RootStackParamList = {
   Dictionary: { searchTerm?: string };
   WordEditor: { word?: Word };
   Contribuir: undefined; // Add this line
+  Administracion: undefined;
 };
 
 /**
