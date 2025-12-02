@@ -27,8 +27,9 @@ const allowedOrigins = [
   'http://localhost:19006',    // Entorno web de Expo
   'exp://192.168.1.X:19000',  // URL de la app Expo en dispositivo físico
   'http://localhost:8081',    // Entorno web de React Native
-  'http://localhost:3000',    // Puerto frontend común
-  process.env.FRONTEND_URL    // URL de frontend desde variables de entorno
+  process.env.FRONTEND_URL,   // URL de frontend desde variables de entorno
+  process.env.EXPO_PUBLIC_API_URL,
+  'https://diccionarioweb.vercel.app',  // URL de render.com API
 ].filter(Boolean) as string[]; // Filtra valores undefined
 
 /**

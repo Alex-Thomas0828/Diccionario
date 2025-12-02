@@ -9,14 +9,14 @@ import { Word } from '../models/word';
 /**
  * URL base de la API
  * @constant {string}
- * @default 'http://localhost:3001/api'
+ * @default 'process.env.EXPO_PUBLIC_API_URL'
  * @description 
  * Orden de prioridad:
  * 1. EXPO_PUBLIC_API_URL (variable de entorno para Expo)
  * 2. API_BASE_URL (variable de entorno genérica)
  * 3. URL local por defecto
  */
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || process.env.API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 /**
  * Maneja la respuesta del servidor

@@ -14,7 +14,7 @@ import { Word } from '../models/word';
  * 1. EXPO_PUBLIC_API_URL (variable de entorno para Expo)
  * 2. URL local por defecto
  */
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const DictionaryAPI = {
   /**
