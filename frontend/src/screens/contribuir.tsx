@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,7 +7,6 @@ import { RootStackParamList } from '../types/navigation';
 import { DictionaryAPI } from '../services/api';
 import { Picker } from '@react-native-picker/picker';
 
-// Add category options at the top of your component
 const CATEGORIAS_SEMANTICAS = [
   { label: 'Selecciona una categoría', value: '' },
   { label: 'Familia', value: 'familia' },
@@ -36,10 +35,60 @@ export default function ContribuirScreen() {
   const [categoriaGramatical, setCategoriaGramatical] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Custom Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'success' | 'error' | 'duplicate'>('success');
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+
+  const showModal = (type: 'success' | 'error' | 'duplicate', title: string, message: string) => {
+    console.log('📢 SHOWING MODAL:', { type, title, message });
+    setModalType(type);
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVisible(true);
+  };
+
+  const hideModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleModalAction = (action: 'addAnother' | 'viewDictionary' | 'close') => {
+    hideModal();
+    
+    if (action === 'addAnother') {
+      // Clear form
+      setPalabraAncestral('');
+      setSignificadoEspanol('');
+      setEjemploUso('');
+      setCategoriaSemantica('');
+      setCategoriaGramatical('');
+    } else if (action === 'viewDictionary') {
+      navigation.navigate('Dictionary', {});
+    }
+  };
+
   const handleSubmit = async () => {
+    console.log('🔵 handleSubmit called');
+    
     // Validation
     if (!palabraAncestral.trim() || !significadoEspanol.trim()) {
-      Alert.alert('Error', 'Los campos "Palabra en lengua ancestral" y "Significado en español" son obligatorios');
+      console.log('❌ Validation failed: missing required fields');
+      showModal(
+        'error',
+        'Error',
+        'Los campos "Palabra en lengua ancestral" y "Significado en español" son obligatorios'
+      );
+      return;
+    }
+
+    if (!categoriaSemantica.trim() || !categoriaGramatical.trim()) {
+      console.log('❌ Validation failed: missing categories');
+      showModal(
+        'error',
+        'Error',
+        'Por favor selecciona ambas categorías (Semántica y Gramatical)'
+      );
       return;
     }
 
@@ -47,48 +96,51 @@ export default function ContribuirScreen() {
       setLoading(true);
       
       const wordData = {
-        palabra: palabraAncestral.trim(), //changed from 'word'
-        definicion: significadoEspanol.trim(), //changed from 'definition'
+        palabra: palabraAncestral.trim(),
+        definicion: significadoEspanol.trim(),
         ejemplo: ejemploUso.trim() || undefined,
-        semantica: categoriaSemantica.trim() || undefined,
-        categoria_grammatica: categoriaGramatical.trim() || undefined
+        semantica: categoriaSemantica.trim(),
+        categoria_grammatica: categoriaGramatical.trim()
       };
 
-      console.log('Submitting word data:', wordData);
+      console.log('🔵 Submitting word data:', wordData);
 
       const result = await DictionaryAPI.createWord(wordData);
-      console.log('Word created successfully:', result);
+      console.log('✅ SUCCESS! Word created:', result);
       
-      Alert.alert(
-        'Contribución Enviada',
-        'Tu palabra ha sido enviada para revisión. ¡Gracias por contribuir!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Clear form
-              setPalabraAncestral('');
-              setSignificadoEspanol('');
-              setEjemploUso('');
-              setCategoriaSemantica('');
-              setCategoriaGramatical('');
-            }
-          }
-        ]
+      // SUCCESS MODAL
+      showModal(
+        'success',
+        '✓ Palabra Agregada',
+        `La palabra "${palabraAncestral}" ha sido agregada exitosamente al diccionario. ¡Gracias por contribuir!`
       );
-    } catch (err) {
-      console.log('Error submitting word:', err);
-      Alert.alert('Error', err.message || 'Ocurrió un error al enviar tu palabra. Por favor, intenta de nuevo.');
+      
+    } catch (err: any) {
+      console.error('❌ CATCH BLOCK - Error submitting word:', err);
+      console.error('❌ Error message:', err.message);
+      
+      // Handle duplicate word error specifically
+      if (err.message && (err.message.includes('ya existe') || err.message.includes('DUPLICATE'))) {
+        console.log('⚠️ DUPLICATE DETECTED IN FRONTEND');
+        // DUPLICATE MODAL
+        showModal(
+          'duplicate',
+          '⚠️ Palabra Duplicada',
+          `La palabra "${palabraAncestral}" ya existe en el diccionario. Por favor verifica el diccionario o intenta con una palabra diferente.`
+        );
+      } else {
+        // GENERIC ERROR MODAL
+        showModal(
+          'error',
+          '✗ Error',
+          err.message || 'No se pudo agregar la palabra. Por favor intenta de nuevo.'
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleNavigation = (screenName: keyof RootStackParamList) => {
-    navigation.navigate(screenName);
-  };
-
-    // Replace the DropdownField component with this:
   const DropdownField = ({ 
     label, 
     value, 
@@ -119,6 +171,10 @@ export default function ContribuirScreen() {
       </View>
     </View>
   );
+
+  const handleNavigation = (screenName: keyof RootStackParamList) => {
+    navigation.navigate(screenName);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -154,14 +210,13 @@ export default function ContribuirScreen() {
         </View>
       </View>
 
+      {/* Main Content */}
       <View style={styles.content}>
-        {/* Title Section */}
         <Text style={styles.mainTitle}>Contribuir al Diccionario</Text>
         <Text style={styles.subtitle}>
           Ayuda a enriquecer nuestro diccionario de lengua ancestral agregando nuevas palabras.
         </Text>
 
-        {/* Main Form Section */}
         <View style={styles.formSection}>
           <View style={styles.formHeader}>
             <Text style={styles.formIcon}>👤</Text>
@@ -174,7 +229,6 @@ export default function ContribuirScreen() {
             </View>
           </View>
 
-          {/* Form Fields */}
           <View style={styles.formFields}>
             <View style={styles.fieldRow}>
               <View style={[styles.fieldContainer, styles.halfField]}>
@@ -225,7 +279,7 @@ export default function ContribuirScreen() {
               
               <View style={[styles.fieldContainer, styles.halfField]}>
                 <DropdownField
-                  label="Categoría Gramatical*"
+                  label="Categoría Gramatical *"
                   value={categoriaGramatical}
                   onValueChange={setCategoriaGramatical}
                   options={CATEGORIAS_GRAMATICALES}
@@ -245,51 +299,67 @@ export default function ContribuirScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Sidebar Sections */}
-        <View style={styles.sidebarContainer}>
-          {/* Contributions Summary */}
-          <View style={styles.sidebarCard}>
-            <Text style={styles.sidebarTitle}>Tus Contribuciones</Text>
-            <Text style={styles.sidebarSubtitle}>Resumen de tus palabras enviadas</Text>
-            
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Total enviadas</Text>
-              <Text style={styles.statValue}>0</Text>
-            </View>
-            
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>⏳ Pendientes</Text>
-              <Text style={styles.statValue}>0</Text>
-            </View>
-            
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>✓ Aprobadas</Text>
-              <Text style={[styles.statValue, styles.approvedBadge]}>0</Text>
-            </View>
-            
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Rechazadas</Text>
-              <Text style={[styles.statValue, styles.rejectedBadge]}>0</Text>
-            </View>
-          </View>
-
-          {/* Guidelines */}
-          <View style={styles.sidebarCard}>
-            <Text style={styles.sidebarTitle}>📚 Guías de Contribución</Text>
-            
-            <Text style={styles.guidelineTitle}>Consejos para una buena contribución:</Text>
-            
-            <View style={styles.guidelinesList}>
-              <Text style={styles.guidelineItem}>• Verifica que la palabra no exista ya</Text>
-              <Text style={styles.guidelineItem}>• Usa la ortografía correcta</Text>
-              <Text style={styles.guidelineItem}>• Proporciona un ejemplo claro</Text>
-              <Text style={styles.guidelineItem}>• Selecciona la categoría apropiada</Text>
-              <Text style={styles.guidelineItem}>• Incluye el contexto cultural si es relevante</Text>
-            </View>
-          </View>
-        </View>
       </View>
+
+      {/* Custom Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={hideModal}
+      >
+        <Pressable style={styles.modalOverlay} onPress={hideModal}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>{modalTitle}</Text>
+            <Text style={styles.modalMessage}>{modalMessage}</Text>
+            
+            <View style={styles.modalButtons}>
+              {modalType === 'success' && (
+                <>
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.modalButtonSecondary]}
+                    onPress={() => handleModalAction('addAnother')}
+                  >
+                    <Text style={styles.modalButtonTextSecondary}>Agregar Otra</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.modalButtonPrimary]}
+                    onPress={() => handleModalAction('viewDictionary')}
+                  >
+                    <Text style={styles.modalButtonTextPrimary}>Ver Diccionario</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              
+              {modalType === 'duplicate' && (
+                <>
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.modalButtonSecondary]}
+                    onPress={() => handleModalAction('close')}
+                  >
+                    <Text style={styles.modalButtonTextSecondary}>OK</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.modalButtonPrimary]}
+                    onPress={() => handleModalAction('viewDictionary')}
+                  >
+                    <Text style={styles.modalButtonTextPrimary}>Ver Diccionario</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              
+              {modalType === 'error' && (
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  onPress={() => handleModalAction('close')}
+                >
+                  <Text style={styles.modalButtonTextPrimary}>OK</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -353,20 +423,25 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: 16,
   },
   subtitle: {
     fontSize: 16,
     color: '#6b7280',
-    marginBottom: 32,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 48,
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   formSection: {
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 12,
     padding: 24,
-    marginBottom: 24,
     backgroundColor: '#ffffff',
+    marginBottom: 48,
   },
   formHeader: {
     flexDirection: 'row',
@@ -374,7 +449,7 @@ const styles = StyleSheet.create({
   },
   formIcon: {
     fontSize: 24,
-    marginRight: 16,
+    marginRight: 12,
   },
   formTitle: {
     fontSize: 20,
@@ -386,7 +461,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     lineHeight: 20,
-    maxWidth: 600,
   },
   formFields: {
     gap: 20,
@@ -396,10 +470,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   fieldContainer: {
-    flex: 1,
+    marginBottom: 4,
   },
   halfField: {
-    flex: 0.5,
+    flex: 1,
   },
   fieldLabel: {
     fontSize: 14,
@@ -415,9 +489,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     backgroundColor: '#f9fafb',
+    color: '#1f2937',
   },
   textArea: {
-    height: 80,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
   fieldHelp: {
@@ -425,105 +500,94 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
   },
-
   pickerContainer: {
-  borderWidth: 1,
-  borderColor: '#d1d5db',
-  borderRadius: 6,
-  backgroundColor: '#f9fafb',
-  overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
+    backgroundColor: '#f9fafb',
+    overflow: 'hidden',
   },
   picker: {
     height: 50,
   },
-
   submitButton: {
     backgroundColor: '#1f2937',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 6,
-    marginTop: 8,
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginTop: 12,
   },
   disabledButton: {
-    backgroundColor: '#9ca3af',
+    opacity: 0.5,
   },
   submitButtonIcon: {
-    fontSize: 16,
+    fontSize: 18,
     marginRight: 8,
   },
   submitButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  sidebarContainer: {
-    gap: 24,
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sidebarCard: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 20,
+  modalContent: {
     backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    maxWidth: 500,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  sidebarTitle: {
-    fontSize: 18,
+  modalTitle: {
+    fontSize: 20,
     fontWeight: '600',
     color: '#1f2937',
-    marginBottom: 8,
-  },
-  sidebarSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 16,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#374151',
-  },
-  statValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  approvedBadge: {
-    backgroundColor: '#1f2937',
-    color: '#ffffff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    fontSize: 12,
-  },
-  rejectedBadge: {
-    backgroundColor: '#ef4444',
-    color: '#ffffff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    fontSize: 12,
-  },
-  guidelineTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
     marginBottom: 12,
   },
-  guidelinesList: {
-    gap: 6,
-  },
-  guidelineItem: {
-    fontSize: 14,
+  modalMessage: {
+    fontSize: 16,
     color: '#6b7280',
-    lineHeight: 20,
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#1f2937',
+  },
+  modalButtonSecondary: {
+    backgroundColor: '#e5e7eb',
+  },
+  modalButtonTextPrimary: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalButtonTextSecondary: {
+    color: '#1f2937',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
