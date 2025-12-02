@@ -114,30 +114,68 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/', async (req: Request, res: Response):Promise<void> => {
    const {palabra, definicion, semantica, categoria_grammatica, ejemplo} = req.body;
+   
+   console.log('🔵 POST /words - Received data:', { palabra, definicion, semantica, categoria_grammatica });
+   
    // 🧩 Validación de campos obligatorios
    if (!palabra || !definicion || !semantica || !categoria_grammatica) {
+      console.log('❌ Validation failed: missing required fields');
       res.status(400).json({ error: 'Todos los campos obligatorios son requeridos' });
       return;
    }
 
    try{
+      // First check if word already exists
+      console.log('🔍 Checking if word exists:', palabra.trim());
+      const { data: existingWord } = await supabase
+         .from('dictionary')
+         .select('id, palabra')
+         .eq('palabra', palabra.trim())
+         .maybeSingle();
+
+      console.log('🔍 Existing word result:', existingWord);
+
+      if (existingWord) {
+         console.log('⚠️ Duplicate detected! Returning 409');
+         res.status(409).json({ 
+            error: 'Esta palabra ya existe en el diccionario',
+            code: 'DUPLICATE_WORD'
+         });
+         return;
+      }
+
+      // If word doesn't exist, insert it
+      console.log('✅ Word is unique, inserting...');
       const {data, error} = await supabase
       .from('dictionary')
       .insert([{
-         palabra,
-         definicion,
-         semantica,
-         categoria_grammatica,
-         ejemplo
+         palabra: palabra.trim(),
+         definicion: definicion.trim(),
+         semantica: semantica || null,
+         categoria_grammatica: categoria_grammatica || null,
+         ejemplo: ejemplo ? ejemplo.trim() : null
       }])
       .select()
       .single();
 
-      if (error) throw error;
+      if (error) {
+         console.log('❌ Supabase error:', error);
+         // Handle Supabase unique constraint error
+         if (error.code === '23505') {
+            res.status(409).json({ 
+               error: 'Esta palabra ya existe en el diccionario',
+               code: 'DUPLICATE_WORD'
+            });
+            return;
+         }
+         throw error;
+      }
+      
+      console.log('✅ Word created successfully:', data);
       res.status(201).json(data);
    } catch (err) {
-      console.log('not able to add new word', err);
-      res.status(500).json({ error: 'La palabra ya existe en el diccionario' });
+      console.error('❌ Catch block error:', err);
+      res.status(500).json({ error: 'No se pudo agregar la palabra' });
    }
 
 });
