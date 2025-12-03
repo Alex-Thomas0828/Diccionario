@@ -194,7 +194,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.headerTitle}>Lengua Ancestral</Text>
+          <Text style={styles.headerTitle}>Lengua Ancestral mas</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
