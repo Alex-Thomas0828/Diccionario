@@ -29,7 +29,7 @@ const allowedOrigins = [
   'http://localhost:8081',    // Entorno web de React Native
   process.env.FRONTEND_URL,   // URL de frontend desde variables de entorno
   process.env.EXPO_PUBLIC_API_URL,
-  'https://diccionarioweb.vercel.app',  // URL de render.com API
+  'https://diccionariominika.vercel.app',  // URL de render.com API
 ].filter(Boolean) as string[]; // Filtra valores undefined
 
 /**
